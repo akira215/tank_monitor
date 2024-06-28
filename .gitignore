@@ -1,0 +1,7 @@
+Releases/
+build/
+doc/
+.vscode/
+.devcontainer/
+debug.log
+sdkonfig.old
