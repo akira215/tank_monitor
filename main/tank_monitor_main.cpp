@@ -43,7 +43,7 @@ static const char *TAG = "tank_app";
 
 #define I2C_MASTER_SCL_IO           CONFIG_I2C_MASTER_SCL      //!< GPIO number used for I2C master clock 
 #define I2C_MASTER_SDA_IO           CONFIG_I2C_MASTER_SDA      //!< GPIO number used for I2C master data  
-#define I2C_MASTER_NUM              0                          //!< I2C master i2c port number, the number of i2c peripheral interfaces available will depend on the chip 
+#define I2C_MASTER_NUM              I2C_NUM_0                  //!< I2C master i2c port number, the number of i2c peripheral interfaces available will depend on the chip 
 #define I2C_MASTER_FREQ_HZ          400000                     //!< I2C master clock frequency 
 #define I2C_MASTER_TX_BUF_DISABLE   0                          //!< I2C master doesn't need buffer 
 #define I2C_MASTER_RX_BUF_DISABLE   0                          //!< I2C master doesn't need buffer 
@@ -94,6 +94,18 @@ void TankMonitor::setup(void)
 
     // Print Hardware infos
     print_hardware();
+    testI2C();
+}
+
+void TankMonitor::testI2C(void)
+{
+   I2c i2c_master(I2C_MASTER_NUM, I2C_MASTER_SDA_IO, I2C_MASTER_SCL_IO, true);
+   i2c_master_dev_handle_t ads = i2c_master.addDevice(ADS111X_ADDR_GND);
+   ESP_LOGI(TAG, "I2C initialized successfully");
+   uint16_t regValue = i2c_master.WriteRead2Bytes(ads,(uint8_t)0x01);
+
+   ESP_LOGI(TAG, "Reg address %d: %d",(uint8_t)0x01,regValue);
+
 }
 
 void TankMonitor::print_hardware (void)
@@ -131,9 +143,11 @@ void TankMonitor::print_hardware (void)
 /**
  * @brief i2c master initialization
  */
+
+/*
 static esp_err_t i2c_master_init(i2c_master_bus_handle_t* bus_handle)
 {
-    /*
+    
     int i2c_master_port = I2C_MASTER_NUM;
 
     i2c_config_t conf = {
@@ -148,7 +162,7 @@ static esp_err_t i2c_master_init(i2c_master_bus_handle_t* bus_handle)
     i2c_param_config(i2c_master_port, &conf);
 
     return i2c_driver_install(i2c_master_port, conf.mode, I2C_MASTER_RX_BUF_DISABLE, I2C_MASTER_TX_BUF_DISABLE, 0);
-*/
+
     i2c_master_bus_config_t i2c_mst_config = i2c_master_bus_config_t();
 
     i2c_mst_config.i2c_port = I2C_MASTER_NUM;
@@ -163,7 +177,7 @@ static esp_err_t i2c_master_init(i2c_master_bus_handle_t* bus_handle)
 
 
 }
-
+*/
 
 extern "C" void app_main(void)
 {
@@ -176,9 +190,9 @@ extern "C" void app_main(void)
 
 
     // Initializing I2C
-    i2c_master_bus_handle_t i2c_handle;
-    ESP_ERROR_CHECK(i2c_master_init(&i2c_handle));
-    ESP_LOGD(TAG, "I2C initialized successfully");
+    //i2c_master_bus_handle_t i2c_handle;
+    //ESP_ERROR_CHECK(i2c_master_init(&i2c_handle));
+    //ESP_LOGD(TAG, "I2C initialized successfully");
 
 
     // Below uses the default values speficied by the datasheet
@@ -216,8 +230,8 @@ extern "C" void app_main(void)
     
     //should not reach here
     //ESP_ERROR_CHECK(i2c_driver_delete(I2C_MASTER_NUM));
-    ESP_ERROR_CHECK(i2c_del_master_bus(i2c_handle));
-    ESP_LOGD(TAG, "I2C de-initialized successfully");
+    //ESP_ERROR_CHECK(i2c_del_master_bus(i2c_handle));
+    //ESP_LOGD(TAG, "I2C de-initialized successfully");
 }
 
 void TankMonitor::button_event_handler(void *handler_args, esp_event_base_t base, int32_t id, void *event_data)

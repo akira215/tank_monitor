@@ -3,6 +3,7 @@
 #include <iostream>
 
 #include "cppgpio.h"
+#include "cppi2c.h"
 
 #define GPIO_LED                    CONFIG_LED_GPIO  //!< GPIO number connect to the LED
 
@@ -13,6 +14,7 @@ public:
     void run(void);
     void setup(void);
     void print_hardware(void);
+    void testI2C(void);
 
     // LED pin on Board
     GpioOutput cppLed { static_cast<gpio_num_t>(GPIO_LED) };
@@ -31,6 +33,7 @@ public:
     static QueueHandle_t button_evt_queue;
     // Prototype for the task
     static void gpio_task_example(void *arg);
-
+private:
+    //I2c i2c_master;
 
 }; // Main Class
