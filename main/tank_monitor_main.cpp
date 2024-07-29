@@ -30,7 +30,7 @@
 #include <freertos/task.h>
 //#include "config/sdkconfig.h"
 #include "tank_monitor_main.h"
-#include "ads1115.h"
+#include "cppads1115.h"
 
 
 #include "esp_chip_info.h"
@@ -99,12 +99,18 @@ void TankMonitor::setup(void)
 
 void TankMonitor::testI2C(void)
 {
+    /*
    I2c i2c_master(I2C_MASTER_NUM, I2C_MASTER_SDA_IO, I2C_MASTER_SCL_IO, true);
    i2c_master_dev_handle_t ads = i2c_master.addDevice(ADS111X_ADDR_GND);
    ESP_LOGI(TAG, "I2C initialized successfully");
-   uint16_t regValue = i2c_master.WriteRead2Bytes(ads,(uint8_t)0x01);
+   uint16_t regValue = i2c_master.WriteReadWord(ads,(uint8_t)0x01);
 
    ESP_LOGI(TAG, "Reg address %d: %d",(uint8_t)0x01,regValue);
+
+   */
+    I2c i2c_master(I2C_MASTER_NUM, I2C_MASTER_SDA_IO, I2C_MASTER_SCL_IO, true);
+    Ads1115 ads(&i2c_master,Ads1115::Addr_Gnd);
+    ESP_LOGI(TAG, "Config: %d",ads.readConfig());
 
 }
 
