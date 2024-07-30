@@ -30,7 +30,7 @@
 #include <freertos/task.h>
 //#include "config/sdkconfig.h"
 #include "tank_monitor_main.h"
-#include "cppads1115.h"
+
 
 
 #include "esp_chip_info.h"
@@ -56,6 +56,13 @@ QueueHandle_t TankMonitor::button_evt_queue {nullptr};
 
 TankMonitor App;
 
+TankMonitor::TankMonitor(): 
+        i2c_master(I2C_MASTER_NUM, I2C_MASTER_SDA_IO, I2C_MASTER_SCL_IO, true),
+        ads(&i2c_master,Ads1115::Addr_Gnd)
+{
+    
+}
+
 void TankMonitor::run(void)
 {
     vTaskDelay(pdMS_TO_TICKS(1000));
@@ -63,6 +70,7 @@ void TankMonitor::run(void)
 
     cppLed.setLevel(cppButton.read());
     ESP_LOGI(TAG,"App is running");
+    ESP_LOGI(TAG, "Conversion : %f", ads.getVoltage(Ads1115::MUX_3_GND));
 
     
 }
@@ -108,9 +116,62 @@ void TankMonitor::testI2C(void)
    ESP_LOGI(TAG, "Reg address %d: %d",(uint8_t)0x01,regValue);
 
    */
-    I2c i2c_master(I2C_MASTER_NUM, I2C_MASTER_SDA_IO, I2C_MASTER_SCL_IO, true);
-    Ads1115 ads(&i2c_master,Ads1115::Addr_Gnd);
-    ESP_LOGI(TAG, "Config: %d",ads.readConfig());
+    //I2c i2c_master(I2C_MASTER_NUM, I2C_MASTER_SDA_IO, I2C_MASTER_SCL_IO, true);
+    //Ads1115 ads(&i2c_master,Ads1115::Addr_Gnd);
+    Ads1115::Cfg_reg cfg = ads.getConfig();
+    ESP_LOGI(TAG, "Config: %d", cfg.reg.reg);
+    ESP_LOGI(TAG, "COMP QUE:    %x",cfg.bit.COMP_QUE);
+    ESP_LOGI(TAG, "COMP LAT:    %x",cfg.bit.COMP_LAT);
+    ESP_LOGI(TAG, "COMP POL:    %x",cfg.bit.COMP_POL);
+    ESP_LOGI(TAG, "COMP MODE:   %x",cfg.bit.COMP_MODE);
+    ESP_LOGI(TAG, "DataRate:    %x",cfg.bit.DR);
+    ESP_LOGI(TAG, "MODE:        %x",cfg.bit.MODE);
+    ESP_LOGI(TAG, "PGA:         %x",cfg.bit.PGA);
+    ESP_LOGI(TAG, "MUX:         %x",cfg.bit.MUX);
+    ESP_LOGI(TAG, "OS:          %x",cfg.bit.OS);
+
+    Ads1115::reg2Bytes_t regData;
+    regData = ads.readRegister(Ads1115::reg_lo_thresh);
+    ESP_LOGI(TAG, "Reg Lo Thresh : %x", regData.reg);
+    ESP_LOGI(TAG, "Reg Lo MSB : %x", regData.MSB);
+    ESP_LOGI(TAG, "Reg Lo LSB : %x", regData.LSB);
+
+    regData = ads.readRegister(Ads1115::reg_hi_thresh);
+    ESP_LOGI(TAG, "Reg Hi Thresh : %x", regData.reg);
+    ESP_LOGI(TAG, "Reg Hi MSB : %x", regData.MSB);
+    ESP_LOGI(TAG, "Reg Hi LSB : %x", regData.LSB);
+    
+    ESP_LOGI(TAG, "Changing config --------------");
+    regData.MSB = 0x01; 
+    //ads.writeRegister(Ads1115::reg_hi_thresh,regData);
+
+    regData = ads.readRegister(Ads1115::reg_hi_thresh);
+    ESP_LOGI(TAG, "Reg Hi Thresh : %x", regData.reg);
+
+    ESP_LOGI(TAG, "Changing config --------------");
+    regData.MSB = 0x01; 
+    //ads.writeRegister(Ads1115::reg_lo_thresh,regData);
+
+    regData = ads.readRegister(Ads1115::reg_lo_thresh);
+    ESP_LOGI(TAG, "Reg Lo Thresh : %x", regData.reg);
+
+    regData = ads.readRegister(Ads1115::reg_configuration);
+    ESP_LOGI(TAG, "Configuration : %x", regData.reg);
+    ESP_LOGI(TAG, "Cfg MSB : %x", regData.MSB);
+    ESP_LOGI(TAG, "Cfg LSB : %x", regData.LSB);
+
+    regData = ads.readRegister(Ads1115::reg_conversion);
+    ESP_LOGI(TAG, "Conversion : %x", regData.reg);
+
+    ESP_LOGI(TAG, "Converting --------------");
+    ESP_LOGI(TAG, "Conversion : %x", ads.getRaw());
+    /*
+    ads.setMux(Ads1115::MUX_0_GND);
+    ads.setSps(Ads1115::SPS_32);
+    cfg = ads.getConfig();
+    ESP_LOGI(TAG, "MUX:         %x",cfg.bit.MUX);
+    ESP_LOGI(TAG, "DataRate:    %x",cfg.bit.DR);
+    */
 
 }
 

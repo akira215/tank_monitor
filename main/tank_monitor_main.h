@@ -4,6 +4,7 @@
 
 #include "cppgpio.h"
 #include "cppi2c.h"
+#include "cppads1115.h"
 
 #define GPIO_LED                    CONFIG_LED_GPIO  //!< GPIO number connect to the LED
 
@@ -11,6 +12,7 @@
 class TankMonitor final
 {
 public:
+    TankMonitor();
     void run(void);
     void setup(void);
     void print_hardware(void);
@@ -34,6 +36,7 @@ public:
     // Prototype for the task
     static void gpio_task_example(void *arg);
 private:
-    //I2c i2c_master;
+    I2c i2c_master;
+    Ads1115 ads;
 
 }; // Main Class
