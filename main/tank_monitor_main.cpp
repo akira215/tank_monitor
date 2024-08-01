@@ -155,6 +155,7 @@ void TankMonitor::testI2C(void)
     regData = ads.readRegister(Ads1115::reg_lo_thresh);
     ESP_LOGI(TAG, "Reg Lo Thresh : %x", regData.reg);
 
+
     regData = ads.readRegister(Ads1115::reg_configuration);
     ESP_LOGI(TAG, "Configuration : %x", regData.reg);
     ESP_LOGI(TAG, "Cfg MSB : %x", regData.MSB);
@@ -163,8 +164,14 @@ void TankMonitor::testI2C(void)
     regData = ads.readRegister(Ads1115::reg_conversion);
     ESP_LOGI(TAG, "Conversion : %x", regData.reg);
 
-    ESP_LOGI(TAG, "Converting --------------");
-    ESP_LOGI(TAG, "Conversion : %x", ads.getRaw());
+    ESP_LOGI(TAG, "Starting --------------");
+    //ESP_LOGI(TAG, "Conversion : %x", ads.getRaw());
+
+    ads.setPga(Ads1115::FSR_4_096); // Setting range for PGA optimized to 3.3V Power supply
+    ads.setSps(Ads1115::SPS_8); // Setting range for PGA optimized to 3.3V Power supply
+
+    ads.setReadyPin(GPIO_NUM_3,&ads1115_event_handler);
+
     /*
     ads.setMux(Ads1115::MUX_0_GND);
     ads.setSps(Ads1115::SPS_32);
@@ -174,6 +181,42 @@ void TankMonitor::testI2C(void)
     */
 
 }
+
+void TankMonitor::ads1115_event_handler(void *handler_args, esp_event_base_t base, int32_t id, void *event_data)
+{
+    Ads1115::mux_t* mux = static_cast<Ads1115::mux_t *>(event_data);
+    uint16_t nMux = static_cast<uint16_t>(*mux);
+    std::cout << "Ads1115 triggered interrupt with ID: " << id << '\n';
+    std::cout << "Ads1115 event data : " << nMux << '\n';
+    /*
+    Ads1115::mux_t* in = static_cast<Ads1115::mux_t*>(handler_args);
+    
+    std::cout << "MUX was: " << static_cast<uint16_t>(*in) << '\n';
+    */
+}
+
+void TankMonitor::button_event_handler(void *handler_args, esp_event_base_t base, int32_t id, void *event_data)
+{
+    std::cout << "Button triggered interrupt with ID: " << id << '\n';
+}
+
+void TankMonitor::task_custom_event(void* handler_args, esp_event_base_t base, int32_t id, void* event_data)
+{
+    std::cout << "Button triggered interrupt with ID: " << id << " With Custom Loop\n";
+}
+
+void TankMonitor::gpio_task_example(void *arg)
+{
+   uint32_t io_num;
+    for (;;)
+    {
+        if (xQueueReceive(TankMonitor::button_evt_queue, &io_num, portMAX_DELAY))
+        {
+            std::cout << "Interrupt triggered from pin " << (int)io_num << " and send to queue\n";
+        }
+    }
+}
+
 
 void TankMonitor::print_hardware (void)
 {
@@ -207,44 +250,7 @@ void TankMonitor::print_hardware (void)
 }
 
 
-/**
- * @brief i2c master initialization
- */
 
-/*
-static esp_err_t i2c_master_init(i2c_master_bus_handle_t* bus_handle)
-{
-    
-    int i2c_master_port = I2C_MASTER_NUM;
-
-    i2c_config_t conf = {
-        .mode = I2C_MODE_MASTER,
-        .sda_io_num = I2C_MASTER_SDA_IO,
-        .scl_io_num = I2C_MASTER_SCL_IO,
-        .sda_pullup_en = GPIO_PULLUP_ENABLE,
-        .scl_pullup_en = GPIO_PULLUP_ENABLE,
-        .master.clk_speed = I2C_MASTER_FREQ_HZ,
-    };
-
-    i2c_param_config(i2c_master_port, &conf);
-
-    return i2c_driver_install(i2c_master_port, conf.mode, I2C_MASTER_RX_BUF_DISABLE, I2C_MASTER_TX_BUF_DISABLE, 0);
-
-    i2c_master_bus_config_t i2c_mst_config = i2c_master_bus_config_t();
-
-    i2c_mst_config.i2c_port = I2C_MASTER_NUM;
-    i2c_mst_config.sda_io_num = static_cast<gpio_num_t>(I2C_MASTER_SDA_IO);
-    i2c_mst_config.scl_io_num = static_cast<gpio_num_t>(I2C_MASTER_SCL_IO);
-    i2c_mst_config.clk_source = I2C_CLK_SRC_DEFAULT;
-    i2c_mst_config.glitch_ignore_cnt = 7;
-    i2c_mst_config.flags.enable_internal_pullup = true;
-
-    //i2c_master_bus_handle_t bus_handle;
-    return i2c_new_master_bus(&i2c_mst_config, bus_handle);
-
-
-}
-*/
 
 extern "C" void app_main(void)
 {
@@ -255,70 +261,11 @@ extern "C" void app_main(void)
         App.run();
     }    
 
-
-    // Initializing I2C
-    //i2c_master_bus_handle_t i2c_handle;
-    //ESP_ERROR_CHECK(i2c_master_init(&i2c_handle));
-    //ESP_LOGD(TAG, "I2C initialized successfully");
-
-
-    // Below uses the default values speficied by the datasheet
-    /*
-    ads1115_t ads1115_cfg = {
-    .reg_cfg =  ADS1115_CFG_LS_COMP_MODE_TRAD | // Comparator is traditional
-                ADS1115_CFG_LS_COMP_LAT_NON |   // Comparator is non-latching
-                ADS1115_CFG_LS_COMP_POL_LOW |   // Alert is active low
-                ADS1115_CFG_LS_COMP_QUE_DIS |   // Compator is disabled
-                ADS1115_CFG_LS_DR_1600SPS |     // No. of samples to take
-                ADS1115_CFG_MS_MODE_SS,         // Mode is set to single-shot
-    .dev_addr = ADS111X_ADDR_GND,
-    };
-    */
-   /*
-   uint16_t reg_cfg = ADS1115_CFG_LS_COMP_MODE_TRAD | // Comparator is traditional
-                ADS1115_CFG_LS_COMP_LAT_NON |   // Comparator is non-latching
-                ADS1115_CFG_LS_COMP_POL_LOW |   // Alert is active low
-                ADS1115_CFG_LS_COMP_QUE_DIS |   // Compator is disabled
-                ADS1115_CFG_LS_DR_1600SPS |     // No. of samples to take
-                ADS1115_CFG_MS_MODE_SS;        // Mode is set to single-shot
-
-    ADS1115_initiate(ADS111X_ADDR_GND, reg_cfg);
-
-     // Request single ended on pin AIN0  
-    ADS1115_request_single_ended_AIN0();      // all functions except for get_conversion_X return 'esp_err_t' for logging
-
-    // Check conversion state - returns true if conversion is complete 
-    while(!ADS1115_get_conversion_state()) 
-      vTaskDelay(pdMS_TO_TICKS(5));          // wait 5ms before check again
-    
-    // Return latest conversion value
-    */
-
-    
     //should not reach here
     //ESP_ERROR_CHECK(i2c_driver_delete(I2C_MASTER_NUM));
     //ESP_ERROR_CHECK(i2c_del_master_bus(i2c_handle));
     //ESP_LOGD(TAG, "I2C de-initialized successfully");
 }
 
-void TankMonitor::button_event_handler(void *handler_args, esp_event_base_t base, int32_t id, void *event_data)
-{
-    std::cout << "Button triggered interrupt with ID: " << id << '\n';
-}
 
-void TankMonitor::task_custom_event(void* handler_args, esp_event_base_t base, int32_t id, void* event_data)
-{
-    std::cout << "Button triggered interrupt with ID: " << id << " With Custom Loop\n";
-}
 
-void TankMonitor::gpio_task_example(void *arg)
-{
-   uint32_t io_num;
-    for (;;)
-    {
-        if (xQueueReceive(TankMonitor::button_evt_queue, &io_num, portMAX_DELAY))
-        {
-            std::cout << "Interrupt triggered from pin " << (int)io_num << " and send to queue\n";
-        }
-    }
-}
