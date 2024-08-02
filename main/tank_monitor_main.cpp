@@ -22,16 +22,12 @@
 #include <esp_mac.h>
 #include <esp_log.h>
 
-//#include "driver/i2c.h"
 #include "driver/i2c_master.h"
 #include "driver/gpio.h"
 
 #include <freertos/FreeRTOS.h>
 #include <freertos/task.h>
-//#include "config/sdkconfig.h"
 #include "tank_monitor_main.h"
-
-
 
 #include "esp_chip_info.h"
 #include "esp_flash.h"
@@ -44,13 +40,9 @@ static const char *TAG = "tank_app";
 #define I2C_MASTER_SCL_IO           CONFIG_I2C_MASTER_SCL      //!< GPIO number used for I2C master clock 
 #define I2C_MASTER_SDA_IO           CONFIG_I2C_MASTER_SDA      //!< GPIO number used for I2C master data  
 #define I2C_MASTER_NUM              I2C_NUM_0                  //!< I2C master i2c port number, the number of i2c peripheral interfaces available will depend on the chip 
-#define I2C_MASTER_FREQ_HZ          400000                     //!< I2C master clock frequency 
-#define I2C_MASTER_TX_BUF_DISABLE   0                          //!< I2C master doesn't need buffer 
-#define I2C_MASTER_RX_BUF_DISABLE   0                          //!< I2C master doesn't need buffer 
-#define I2C_MASTER_TIMEOUT_MS       1000
+#define ADS_I2C_FREQ_HZ             400000                     //!< I2C master clock frequency 
+#define ADS_I2C_TIMEOUT_MS          1000
 #define GPIO_INPUT_IO_READY         CONFIG_ADS1115_READY_INT   //!< GPIO number connect to the ready pin of the converter
-#define GPIO_INPUT_PIN_SEL          (1ULL<<GPIO_INPUT_IO_READY) 
-
 
 QueueHandle_t TankMonitor::button_evt_queue {nullptr};
 
@@ -58,19 +50,19 @@ TankMonitor App;
 
 TankMonitor::TankMonitor(): 
         i2c_master(I2C_MASTER_NUM, I2C_MASTER_SDA_IO, I2C_MASTER_SCL_IO, true),
-        ads(&i2c_master,Ads1115::Addr_Gnd)
+        ads(&i2c_master,Ads1115::Addr_Gnd, ADS_I2C_FREQ_HZ)
 {
     
 }
 
 void TankMonitor::run(void)
 {
-    vTaskDelay(pdMS_TO_TICKS(1000));
+    vTaskDelay(pdMS_TO_TICKS(2000));
     //vTaskDelay(1000 / portTICK_PERIOD_MS);
 
     cppLed.setLevel(cppButton.read());
     ESP_LOGI(TAG,"App is running");
-    ESP_LOGI(TAG, "Conversion : %f", ads.getVoltage(Ads1115::MUX_3_GND));
+    ESP_LOGI(TAG, "Conversion : %f", ads.getVoltage(Ads1115::MUX_2_GND));
 
     
 }
@@ -161,8 +153,8 @@ void TankMonitor::testI2C(void)
     ESP_LOGI(TAG, "Cfg MSB : %x", regData.MSB);
     ESP_LOGI(TAG, "Cfg LSB : %x", regData.LSB);
 
-    regData = ads.readRegister(Ads1115::reg_conversion);
-    ESP_LOGI(TAG, "Conversion : %x", regData.reg);
+    //regData = ads.readRegister(Ads1115::reg_conversion);
+    //ESP_LOGI(TAG, "Conversion : %x", regData.reg);
 
     ESP_LOGI(TAG, "Starting --------------");
     //ESP_LOGI(TAG, "Conversion : %x", ads.getRaw());
@@ -170,8 +162,16 @@ void TankMonitor::testI2C(void)
     ads.setPga(Ads1115::FSR_4_096); // Setting range for PGA optimized to 3.3V Power supply
     ads.setSps(Ads1115::SPS_8); // Setting range for PGA optimized to 3.3V Power supply
 
-    ads.setReadyPin(GPIO_NUM_3,&ads1115_event_handler);
+    ads.setReadyPin(GPIO_NUM_3, &ads1115_event_handler);
 
+    regData = ads.readRegister(Ads1115::reg_configuration);
+    ESP_LOGI(TAG, "Configuration : %x", regData.reg);
+
+    regData = ads.readRegister(Ads1115::reg_lo_thresh);
+    ESP_LOGI(TAG, "Reg Lo Thresh : %x", regData.reg);
+
+    regData = ads.readRegister(Ads1115::reg_hi_thresh);
+    ESP_LOGI(TAG, "Reg Hi Thresh : %x", regData.reg);
     /*
     ads.setMux(Ads1115::MUX_0_GND);
     ads.setSps(Ads1115::SPS_32);
@@ -182,17 +182,11 @@ void TankMonitor::testI2C(void)
 
 }
 
-void TankMonitor::ads1115_event_handler(void *handler_args, esp_event_base_t base, int32_t id, void *event_data)
+void TankMonitor::ads1115_event_handler(uint16_t input, int16_t value)
 {
-    Ads1115::mux_t* mux = static_cast<Ads1115::mux_t *>(event_data);
-    uint16_t nMux = static_cast<uint16_t>(*mux);
-    std::cout << "Ads1115 triggered interrupt with ID: " << id << '\n';
-    std::cout << "Ads1115 event data : " << nMux << '\n';
-    /*
-    Ads1115::mux_t* in = static_cast<Ads1115::mux_t*>(handler_args);
-    
-    std::cout << "MUX was: " << static_cast<uint16_t>(*in) << '\n';
-    */
+    ESP_LOGD(TAG, "Callback Main Ads1115 input : %d", input);
+    ESP_LOGD(TAG, "Callback Main Ads1115 value : %d", value);
+
 }
 
 void TankMonitor::button_event_handler(void *handler_args, esp_event_base_t base, int32_t id, void *event_data)
