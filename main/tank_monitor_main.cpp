@@ -184,8 +184,8 @@ void TankMonitor::testI2C(void)
 
 void TankMonitor::ads1115_event_handler(uint16_t input, int16_t value)
 {
-    ESP_LOGD(TAG, "Callback Main Ads1115 input : %d", input);
-    ESP_LOGD(TAG, "Callback Main Ads1115 value : %d", value);
+    ESP_LOGI(TAG, "Callback Main Ads1115 input : %d", input);
+    ESP_LOGI(TAG, "Callback Main Ads1115 value : %d", value);
 
 }
 
