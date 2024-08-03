@@ -16,14 +16,10 @@
    software is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR
    CONDITIONS OF ANY KIND, either express or implied.
 */
-//#include <stdio.h>
 
 #define LOG_LOCAL_LEVEL ESP_LOG_VERBOSE
 #include <esp_mac.h>
 #include <esp_log.h>
-
-#include "driver/i2c_master.h"
-#include "driver/gpio.h"
 
 #include <freertos/FreeRTOS.h>
 #include <freertos/task.h>

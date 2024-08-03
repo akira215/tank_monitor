@@ -1,7 +1,5 @@
 #pragma once
 
-#include <iostream>
-
 #include "cppgpio.h"
 #include "cppi2c.h"
 #include "cppads1115.h"
