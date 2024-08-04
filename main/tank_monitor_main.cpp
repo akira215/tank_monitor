@@ -1,20 +1,8 @@
-/* i2c - Simple example
-
-   Simple I2C example that shows how to initialize I2C
-   as well as reading and writing from and to registers for a sensor connected over I2C.
-
-   The sensor used in this example is a MPU9250 inertial measurement unit.
-
-   For other examples please check:
-   https://github.com/espressif/esp-idf/tree/master/examples
-
-   See README.md file to get detailed usage of this example.
-
-   This example code is in the Public Domain (or CC0 licensed, at your option.)
-
-   Unless required by applicable law or agreed to in writing, this
-   software is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR
-   CONDITIONS OF ANY KIND, either express or implied.
+/*
+  tank_monitor
+  Repository: https://github.com/akira215/tank_monitor
+  License: GNU GENERAL PUBLIC LICENSE Version 3, 29 June 2007
+  Author: Akira Shimahara
 */
 
 #define LOG_LOCAL_LEVEL ESP_LOG_VERBOSE
@@ -143,7 +131,7 @@ void TankMonitor::testI2C(void)
     regData = ads.readRegister(Ads1115::reg_lo_thresh);
     ESP_LOGI(TAG, "Reg Lo Thresh : %x", regData.reg);
 
-
+    ads.setPga(Ads1115::FSR_4_096); // Setting range for PGA optimized to 3.3V Power supply
     regData = ads.readRegister(Ads1115::reg_configuration);
     ESP_LOGI(TAG, "Configuration : %x", regData.reg);
     ESP_LOGI(TAG, "Cfg MSB : %x", regData.MSB);
@@ -151,9 +139,37 @@ void TankMonitor::testI2C(void)
 
     //regData = ads.readRegister(Ads1115::reg_conversion);
     //ESP_LOGI(TAG, "Conversion : %x", regData.reg);
-
+    
     ESP_LOGI(TAG, "Starting --------------");
-    //ESP_LOGI(TAG, "Conversion : %x", ads.getRaw());
+    ads.setSps(Ads1115::SPS_860); // Setting range for PGA optimized to 3.3V Power supply
+    ESP_LOGI(TAG, "Conversion : %x", ads.getRaw(Ads1115::MUX_2_GND));
+    ESP_LOGI(TAG, "Voltage : %f", ads.getVoltage(Ads1115::MUX_2_GND));
+    ESP_LOGI(TAG, "Conversion : %x", ads.getRaw(Ads1115::MUX_2_GND));
+    ESP_LOGI(TAG, "Voltage : %f", ads.getVoltage(Ads1115::MUX_2_GND));
+    ESP_LOGI(TAG, "Conversion : %x", ads.getRaw(Ads1115::MUX_2_GND));
+    ESP_LOGI(TAG, "Voltage : %f", ads.getVoltage(Ads1115::MUX_2_GND));
+    ESP_LOGI(TAG, "Conversion : %x", ads.getRaw(Ads1115::MUX_2_GND));
+    ESP_LOGI(TAG, "Voltage : %f", ads.getVoltage(Ads1115::MUX_2_GND));
+
+    ads.setSps(Ads1115::SPS_128); // Setting range for PGA optimized to 3.3V Power supply
+    ESP_LOGI(TAG, "Conversion : %x", ads.getRaw(Ads1115::MUX_2_GND));
+    ESP_LOGI(TAG, "Voltage : %f", ads.getVoltage(Ads1115::MUX_2_GND));
+    ESP_LOGI(TAG, "Conversion : %x", ads.getRaw(Ads1115::MUX_2_GND));
+    ESP_LOGI(TAG, "Voltage : %f", ads.getVoltage(Ads1115::MUX_2_GND));
+    ESP_LOGI(TAG, "Conversion : %x", ads.getRaw(Ads1115::MUX_2_GND));
+    ESP_LOGI(TAG, "Voltage : %f", ads.getVoltage(Ads1115::MUX_2_GND));
+    ESP_LOGI(TAG, "Conversion : %x", ads.getRaw(Ads1115::MUX_2_GND));
+    ESP_LOGI(TAG, "Voltage : %f", ads.getVoltage(Ads1115::MUX_2_GND));
+
+    ads.setSps(Ads1115::SPS_860); // Setting range for PGA optimized to 3.3V Power supply
+    ESP_LOGI(TAG, "Conversion : %x", ads.getRaw(Ads1115::MUX_2_GND));
+    ESP_LOGI(TAG, "Voltage : %f", ads.getVoltage(Ads1115::MUX_2_GND));
+    ESP_LOGI(TAG, "Conversion : %x", ads.getRaw(Ads1115::MUX_2_GND));
+    ESP_LOGI(TAG, "Voltage : %f", ads.getVoltage(Ads1115::MUX_2_GND));
+    ESP_LOGI(TAG, "Conversion : %x", ads.getRaw(Ads1115::MUX_2_GND));
+    ESP_LOGI(TAG, "Voltage : %f", ads.getVoltage(Ads1115::MUX_2_GND));
+    ESP_LOGI(TAG, "Conversion : %x", ads.getRaw(Ads1115::MUX_2_GND));
+    ESP_LOGI(TAG, "Voltage : %f", ads.getVoltage(Ads1115::MUX_2_GND));
 
     ads.setPga(Ads1115::FSR_4_096); // Setting range for PGA optimized to 3.3V Power supply
     ads.setSps(Ads1115::SPS_8); // Setting range for PGA optimized to 3.3V Power supply
