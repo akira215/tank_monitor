@@ -1,4 +1,5 @@
 set(srcs tank_monitor_main.cpp)
 
 idf_component_register(SRCS ${srcs}
-                    INCLUDE_DIRS ".")
+                    INCLUDE_DIRS "."
+                    REQUIRES spi_flash cppi2c cppgpio cppads1115)

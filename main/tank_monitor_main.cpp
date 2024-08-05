@@ -194,10 +194,15 @@ void TankMonitor::testI2C(void)
 
 }
 
-void TankMonitor::ads1115_event_handler(uint16_t input, int16_t value)
+void TankMonitor::ads1115_event_handler(uint16_t input, double value)
 {
-    ESP_LOGI(TAG, "Callback Main Ads1115 input : %d", input);
-    ESP_LOGI(TAG, "Callback Main Ads1115 value : %d", value);
+    double Ir = value / 133.0 * 1000; // shunt is 133R
+    // sensor is 4-20 mA for 0-5 bar
+
+    double Pression = (Ir - 4.0/*mA*/) * 5.0 /*bars*/ / (20-4);
+    
+    ESP_LOGI(TAG, "Current on MUX %d : %f mA", input, Ir);
+    ESP_LOGI(TAG, "Pression : %f bars", Pression);   
 
 }
 

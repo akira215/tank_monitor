@@ -34,7 +34,7 @@ public:
     // Event Handler for cppButton
     static void button_event_handler(void *handler_args, esp_event_base_t base, int32_t id, void *event_data);
     
-    static void ads1115_event_handler(uint16_t input, int16_t value);
+    static void ads1115_event_handler(uint16_t input, double value);
 
     // Event Handler for custom loop
     static void task_custom_event(void* handler_args, esp_event_base_t base, int32_t id, void* event_data);
